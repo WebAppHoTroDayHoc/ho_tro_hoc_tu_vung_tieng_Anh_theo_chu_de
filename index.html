@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Từ Vựng Tiếng Anh Vui Nhộn! 🌟</title>
+    <!-- Google Fonts cho trẻ em -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Thư viện SheetJS (xlsx) để đọc file excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- TIÊU ĐỀ -->
+        <header class="app-header">
+            <h1>🌈 Vườn Từ Vựng Vui Nhộn 🎈</h1>
+            <p>Cùng học từ vựng tiếng Anh qua các chủ đề siêu thú vị nào!</p>
+        </header>
+
+        <!-- KHU VỰC QUẢN LÝ FILE & NÚT TẢI MẪU -->
+        <section class="card upload-section">
+            <div class="action-buttons">
+                <button id="btn-download-sample" class="btn btn-secondary">
+                    ⬇️ Tải file XLSX mẫu
+                </button>
+                <button id="btn-add-file" class="btn btn-primary">
+                    📂 Thêm file chủ đề
+                </button>
+                <!-- Input file ẩn để nhận nhiều file -->
+                <input type="file" id="file-input" multiple accept=".xlsx" style="display: none;">
+            </div>
+            <div id="stats-overview" class="stats-overview">
+                Đã nạp: 0 bộ từ vựng — 0 từ
+            </div>
+        </section>
+
+        <!-- KHU VỰC DANH SÁCH CHỦ ĐỀ -->
+        <section class="card topics-section" id="topics-container-card" style="display: none;">
+            <div class="topics-header">
+                <h2>📚 Bộ từ vựng đã chọn</h2>
+                <button id="btn-delete-all" class="btn btn-danger-text">🗑️ Xóa tất cả</button>
+            </div>
+
+            <!-- Tùy chọn chọn chủ đề nhanh -->
+            <div class="select-all-box">
+                <label>
+                    <input type="checkbox" id="checkbox-select-all" checked> <b>Chọn tất cả chủ đề</b>
+                </label>
+            </div>
+
+            <div id="topics-list" class="topics-list">
+                <!-- Danh sách các chủ đề được render tự động qua JS -->
+            </div>
+
+            <!-- NÚT BẮT ĐẦU HỌC -->
+            <div class="start-learning-box">
+                <div class="mode-selector-group">
+                    <label class="radio-label">
+                        <input type="radio" name="study-mode" value="flashcard" checked> 🃏 Thẻ ghi nhớ (Flashcard)
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="study-mode" value="quiz"> 📝 Trắc nghiệm vui
+                    </label>
+                </div>
+                <button id="btn-start-study" class="btn btn-success btn-large">🚀 BẮT ĐẦU HỌC NGAY!</button>
+            </div>
+        </section>
+
+        <!-- KHU VỰC HỌC TẬP (ẨN BAN ĐẦU) -->
+        <section class="card study-section" id="study-section" style="display: none;">
+            <div class="study-header">
+                <button id="btn-back-to-home" class="btn btn-secondary">⬅️ Quay lại</button>
+                <h2 id="study-title">Học Tập</h2>
+            </div>
+
+            <!-- CHẾ ĐỘ 1: FLASHCARD -->
+            <div id="mode-flashcard-content" class="mode-content" style="display: none;">
+                <div class="progress-bar-container">
+                    <span id="fc-progress-text">Thẻ 1 / 10</span>
+                </div>
+                <div class="flashcard-scene" id="flashcard-scene">
+                    <div class="flashcard" id="flashcard">
+                        <div class="flashcard-face flashcard-front">
+                            <span class="fc-word" id="fc-word">apple</span>
+                            <span class="fc-hint">💡 Chạm để lật xem nghĩa</span>
+                        </div>
+                        <div class="flashcard-face flashcard-back">
+                            <span class="fc-meaning" id="fc-meaning">quả táo</span>
+                            <span class="fc-hint">💡 Chạm để quay lại</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flashcard-controls">
+                    <button id="fc-prev" class="btn btn-primary">⬅️ Từ trước</button>
+                    <button id="fc-audio" class="btn btn-accent">🔊 Phát âm</button>
+                    <button id="fc-next" class="btn btn-primary">Từ tiếp ➡️</button>
+                </div>
+            </div>
+
+            <!-- CHẾ ĐỘ 2: TRẮC NGHIỆM -->
+            <div id="mode-quiz-content" class="mode-content" style="display: none;">
+                <div class="quiz-info-bar">
+                    <span id="quiz-progress">Câu 1/10</span>
+                    <span id="quiz-score">⭐ Điểm: 0</span>
+                </div>
+                <div class="quiz-card">
+                    <h3 id="quiz-question-word">Nghĩa của từ "apple" là gì?</h3>
+                    <button id="quiz-speak-btn" class="btn btn-sm btn-accent">🔊 Nghe từ</button>
+                    <div class="quiz-options" id="quiz-options">
+                        <!-- Các lựa chọn đáp án -->
+                    </div>
+                </div>
+                <div class="quiz-footer">
+                    <button id="quiz-next-btn" class="btn btn-success" style="display: none;">Tiếp tục ➡️</button>
+                </div>
+            </div>
+
+            <!-- KẾT QUẢ KHI HOÀN THÀNH BÀI -->
+            <div id="study-complete-content" class="mode-content" style="display: none; text-align: center;">
+                <div class="congrats-banner">
+                    <h2>🎉 XUẤT SẮC QUÁ! 🎉</h2>
+                    <p id="congrats-message">Bạn đã hoàn thành xuất sắc bộ từ vựng!</p>
+                    <div class="star-rating">⭐⭐⭐</div>
+                    <button id="btn-restart-study" class="btn btn-success btn-large">🔄 Học lại nào</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL XÁC NHẬN XÓA TẤT CẢ -->
+    <div id="confirm-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <h3>⚠️ Xác nhận xóa</h3>
+            <p>Bạn có chắc muốn xóa tất cả bộ từ vựng đã nạp?</p>
+            <div class="modal-buttons">
+                <button id="modal-btn-cancel" class="btn btn-secondary">Hủy</button>
+                <button id="modal-btn-confirm" class="btn btn-danger">Xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
