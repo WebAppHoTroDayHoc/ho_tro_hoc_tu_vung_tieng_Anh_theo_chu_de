@@ -416,24 +416,18 @@ document.getElementById('btn-restart-study').addEventListener('click', () => {
     }
 });
 
-// --- 8. HỖ TRỢ PHÁT ÂM ONLINE (TỰ ĐỘNG TẢI TỪ GOOGLE QUA 4G/WIFI) ---
+// --- 8. PHÁT ÂM THANH TỨC THÌ KHI CẦN (KHÔNG TẢI TRƯỚC, KHÔNG CHỜ ĐỢI) ---
 function speakWord(word) {
     if (!word) return;
 
-    // Chuẩn hóa từ để đưa vào đường dẫn URL (tránh lỗi khi từ có khoảng trắng hoặc ký tự đặc biệt)
     const cleanWord = encodeURIComponent(word.trim());
-    
-    // Đường dẫn API phát âm thanh công khai của Google Translate
     const googleTTSUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${cleanWord}&tl=en&client=tw-ob`;
 
-    // Tạo đối tượng Audio HTML5 để phát trực tiếp từ nguồn mạng
     const audio = new Audio(googleTTSUrl);
     
-    // Phát âm thanh
+    // Chỉ phát khi audio đã sẵn sàng dữ liệu luồng nhỏ, không block giao diện
     audio.play().catch(error => {
-        console.warn("Không phát được âm thanh online, thử dùng trình duyệt...", error);
-        
-        // (Phương án dự phòng) Nếu mất mạng hoàn toàn thì mới gọi lại SpeechSynthesis của máy
+        // Dự phòng bằng SpeechSynthesis nếu có sự cố mạng
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(word);
