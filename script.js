@@ -416,13 +416,29 @@ document.getElementById('btn-restart-study').addEventListener('click', () => {
     }
 });
 
-// --- 8. HỖ TRỢ PHÁT ÂM (SPEECH SYNTHESIS) ---
+// --- 8. HỖ TRỢ PHÁT ÂM ONLINE (TỰ ĐỘNG TẢI TỪ GOOGLE QUA 4G/WIFI) ---
 function speakWord(word) {
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // Dừng phát âm cũ nếu đang chạy
-        const utterance = new SpeechSynthesisUtterance(word);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.9; // Đọc chậm một chút cho học sinh dễ nghe
-        window.speechSynthesis.speak(utterance);
-    }
+    if (!word) return;
+
+    // Chuẩn hóa từ để đưa vào đường dẫn URL (tránh lỗi khi từ có khoảng trắng hoặc ký tự đặc biệt)
+    const cleanWord = encodeURIComponent(word.trim());
+    
+    // Đường dẫn API phát âm thanh công khai của Google Translate
+    const googleTTSUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${cleanWord}&tl=en&client=tw-ob`;
+
+    // Tạo đối tượng Audio HTML5 để phát trực tiếp từ nguồn mạng
+    const audio = new Audio(googleTTSUrl);
+    
+    // Phát âm thanh
+    audio.play().catch(error => {
+        console.warn("Không phát được âm thanh online, thử dùng trình duyệt...", error);
+        
+        // (Phương án dự phòng) Nếu mất mạng hoàn toàn thì mới gọi lại SpeechSynthesis của máy
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(word);
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
+        }
+    });
 }
